@@ -18,10 +18,12 @@ const createArticle = async (req, res, next) => {
   } = req.body;
   const owner = req.user._id;
   try {
-    const newArticle = await Article.create({
+    await Article.create({
       keyword, title, text, date, source, link, image, owner,
     });
-    res.status(200).send(newArticle);
+    res.status(200).send({
+      keyword, title, text, date, source, link, image,
+    });
   } catch (error) {
     if (error.name === 'ValidationError') {
       next(new ValidationError('Ошибка валидации! Некорректный url'));
@@ -31,13 +33,15 @@ const createArticle = async (req, res, next) => {
 
 const deleteArticle = async (req, res, next) => {
   try {
-    const delArticle = await Article.findByIdAndRemove({ _id: req.params.articleId });
-    if (!delArticle) {
+    const { articleId } = req.params;
+    const findArticle = await Article.findById(articleId).select('+owner');
+    if (!findArticle) {
       throw new NotFoundError('Карточка не найдена');
-    } else if (delArticle.owner.toString() !== req.user._id) {
+    } else if (findArticle.owner.toString() !== req.user._id) {
       throw new ForbiddenError('Нельзя удалить карточку другого пользователя');
     }
-    res.status(200).send({ message: `Карточка удалена ${delArticle}` });
+    const delArticle = await Article.findByIdAndRemove(articleId);
+    res.status(200).send({ message: 'Карточка удалена', article: delArticle });
   } catch (error) {
     next(error);
   }
