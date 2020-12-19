@@ -1,5 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
-const isEmail = require('validator/lib/isEmail');
+const isUrl = require('validator/lib/isURL');
 
 const validationArticlePost = celebrate({
   body: Joi.object().keys({
@@ -9,11 +9,11 @@ const validationArticlePost = celebrate({
     date: Joi.string().required(),
     source: Joi.string().required(),
     link: Joi.string().required().custom((value, helpers) => {
-      if (isEmail(value) === true) return value;
+      if (isUrl(value) === true) return value;
       return helpers.error('any.invalid');
     }),
     image: Joi.string().required().custom((value, helpers) => {
-      if (isEmail(value) === true) return value;
+      if (isUrl(value) === true) return value;
       return helpers.error('any.invalid');
     }),
   }),
@@ -25,7 +25,24 @@ const validationArticleDelete = celebrate({
   }),
 });
 
+const validationUserRegister = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(6).trim(),
+  }),
+});
+
+const validationUserLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(6).trim(),
+  }),
+});
+
 module.exports = {
   validationArticlePost,
   validationArticleDelete,
+  validationUserRegister,
+  validationUserLogin,
 };
