@@ -1,9 +1,9 @@
-const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 const User = require('../models/user');
+const { JWT_KEY } = require('../utils/config');
 
 const getUserMe = async (req, res, next) => {
   try {
@@ -46,7 +46,7 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const user = await User.findUserByCredentials(email, password);
-    const token = await jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+    const token = await jwt.sign({ _id: user._id }, JWT_KEY, { expiresIn: '7d' });
     res.status(200).send({ token });
   } catch (error) {
     next(error);
