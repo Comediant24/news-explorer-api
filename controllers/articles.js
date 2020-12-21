@@ -4,8 +4,10 @@ const ValidationError = require('../errors/validation-error');
 const Article = require('../models/article');
 
 const getArticles = async (req, res, next) => {
+  const owner = req.user._id;
   try {
-    const Articles = await Article.find({});
+    const Articles = await Article.find({ owner })
+      .orFail(new NotFoundError('У пользователя сохраненные статьи отсутствуют'));
     res.status(200).send(Articles);
   } catch (error) {
     next(error);
@@ -27,6 +29,8 @@ const createArticle = async (req, res, next) => {
   } catch (error) {
     if (error.name === 'ValidationError') {
       next(new ValidationError('Ошибка валидации! Некорректный url'));
+    } else {
+      next(error);
     }
   }
 };

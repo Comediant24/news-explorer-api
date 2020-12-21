@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const AuthError = require('../errors/auth-error');
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 const User = require('../models/user');
@@ -37,15 +38,20 @@ const createUser = async (req, res, next) => {
   } catch (error) {
     if (error.name === 'MongoError') {
       next(new ConflictError('Пользователь с таким email уже зарегестрирован'));
+    } else {
+      next(error);
     }
-    next(error);
   }
 };
 
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findUserByCredentials(email, password);
+    const user = await User.findOne({ email }).select('+password');
+    const ret = await bcrypt.compare(password, user.password);
+    if (!user || !ret) {
+      throw new AuthError('Неправильные почта или пароль');
+    }
     const token = await jwt.sign({ _id: user._id }, JWT_KEY, { expiresIn: '7d' });
     res.status(200).send({ token });
   } catch (error) {
