@@ -5,12 +5,13 @@ const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 const User = require('../models/user');
 const { JWT_KEY } = require('../utils/config');
+const { NOT_FOUND_USER, USER_NOT_UNIQUE, AUTH_BAD_REQUESTS } = require('../utils/errors');
 
 const getUserMe = async (req, res, next) => {
   try {
     const user = await User.findById({ _id: req.user._id });
     if (!user) {
-      throw new NotFoundError('Нет пользователя с таким id');
+      throw new NotFoundError(NOT_FOUND_USER);
     }
     const { email, name } = user;
     res.status(200).send({ email, name });
@@ -37,7 +38,7 @@ const createUser = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === 'MongoError') {
-      next(new ConflictError('Пользователь с таким email уже зарегестрирован'));
+      next(new ConflictError(USER_NOT_UNIQUE));
     } else {
       next(error);
     }
@@ -50,7 +51,7 @@ const loginUser = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
     const ret = await bcrypt.compare(password, user.password);
     if (!user || !ret) {
-      throw new AuthError('Неправильные почта или пароль');
+      throw new AuthError(AUTH_BAD_REQUESTS);
     }
     const token = await jwt.sign({ _id: user._id }, JWT_KEY, { expiresIn: '7d' });
     res.status(200).send({ token });
