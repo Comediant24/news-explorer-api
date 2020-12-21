@@ -9,6 +9,7 @@ const router = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 const notFound = require('./middlewares/notFound');
 const { ENV_PORT, DB_URL, MONGOOSE_CONFIG } = require('./utils/config');
+const limiter = require('./middlewares/rateLimit');
 
 const app = express();
 mongoose.connect(DB_URL, MONGOOSE_CONFIG);
@@ -16,7 +17,7 @@ mongoose.connect(DB_URL, MONGOOSE_CONFIG);
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
-
+app.use(limiter);
 app.use(requestLogger);
 app.use(router);
 app.use(errorLogger);
