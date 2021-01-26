@@ -3,14 +3,13 @@ const NotFoundError = require('../errors/not-found-error');
 const ValidationError = require('../errors/validation-error');
 const Article = require('../models/article');
 const {
-  NOT_USER_ARTICLE, URL_BAD_REQUESTS, NOT_FOUND_ARTICLE, FORBIDDEN_DELETE_ARTICLE,
+  URL_BAD_REQUESTS, NOT_FOUND_ARTICLE, FORBIDDEN_DELETE_ARTICLE,
 } = require('../utils/errors');
 
 const getArticles = async (req, res, next) => {
   const owner = req.user._id;
   try {
     const Articles = await Article.find({ owner })
-      .orFail(new NotFoundError(NOT_USER_ARTICLE));
     res.status(200).send(Articles);
   } catch (error) {
     next(error);
