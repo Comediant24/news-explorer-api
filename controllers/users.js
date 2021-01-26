@@ -5,7 +5,12 @@ const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 const User = require('../models/user');
 const { JWT_KEY } = require('../utils/config');
-const { NOT_FOUND_USER, USER_NOT_UNIQUE, AUTH_BAD_REQUESTS } = require('../utils/errors');
+const {
+  NOT_FOUND_USER,
+  USER_NOT_UNIQUE,
+  AUTH_BAD_EMAIL,
+  AUTH_BAD_PASS,
+} = require('../utils/errors');
 
 const getUserMe = async (req, res, next) => {
   try {
@@ -49,9 +54,12 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return next(new AuthError(AUTH_BAD_EMAIL));
+    }
     const ret = await bcrypt.compare(password, user.password);
-    if (!user || !ret) {
-      throw new AuthError(AUTH_BAD_REQUESTS);
+    if (!ret) {
+      return next(new AuthError(AUTH_BAD_PASS));
     }
     const token = await jwt.sign({ _id: user._id }, JWT_KEY, { expiresIn: '7d' });
     res.status(200).send({ token });
