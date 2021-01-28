@@ -55,11 +55,11 @@ const loginUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return next(new AuthError(AUTH_BAD_EMAIL));
+      next(new AuthError(AUTH_BAD_EMAIL));
     }
     const ret = await bcrypt.compare(password, user.password);
     if (!ret) {
-      return next(new AuthError(AUTH_BAD_PASS));
+      next(new AuthError(AUTH_BAD_PASS));
     }
     const token = await jwt.sign({ _id: user._id }, JWT_KEY, { expiresIn: '7d' });
     res.status(200).send({ token });
