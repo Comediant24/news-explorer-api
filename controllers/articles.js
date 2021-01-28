@@ -9,7 +9,7 @@ const {
 const getArticles = async (req, res, next) => {
   const owner = req.user._id;
   try {
-    const Articles = await Article.find({ owner })
+    const Articles = await Article.find({ owner });
     res.status(200).send(Articles);
   } catch (error) {
     next(error);
